@@ -5,16 +5,16 @@ const { DB_CONFIG } = require('../../config');
 let count = 0;
 class MongoContainer {
   constructor(collection, schema) {
-    if(!count) { // Una vez inicializado la coneccion no volvera a llamarse.
-      this.connect().then(() => console.log('Database connected!'));
+    if(!count) {
+      mongoose.connect(DB_CONFIG.mongodb.uri, { useNewUrlParser: true }).then(() => console.log("Database connected!"));
     }
     count++;
     this.model = mongoose.model(collection, schema);
   }
 
-  async connect() {
-    await mongoose.connect(DB_CONFIG.mongodb.uri);
-  }
+  // connect() {
+  //   mongoose.connect(DB_CONFIG.mongodb.uri, { useNewUrlParser: true }).then(() => console.log("Database connected!"));
+  // }
 
   async generateID() { // Genera un ID único ascendente
     const docRef = await this.getAll();
@@ -39,9 +39,12 @@ class MongoContainer {
     if(!payload.id) { // si el ID no existe crea uno nuevo.
       payload.id = await this.generateID();
       payload.timestamp = `${moment().format('L')} ${moment().format('LTS')}`;
+      const docRef = new this.model(payload);
+      await docRef.save();
+    } else {
+      await this.model.deleteOne({ id: payload.id });
+      await this.model.create({ id: payload.id });
     }
-    const docRef = new this.model(payload);
-    await docRef.save();
   }
 
   async updateById(id, payload) {

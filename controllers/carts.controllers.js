@@ -1,7 +1,7 @@
-const { CartsDao, ProductsDao } = require('../models/daos/index');
+const { CartsDao } = require('../models/daos/index');
+const { productsDao } = require('./products.controllers');
 
 const cartsDao = new CartsDao();
-const productsDao = new ProductsDao();
 
 const getAllCarts = async (req, res, next) => {
   try {
@@ -16,6 +16,7 @@ const getCartById = async (req, res, next) => {
   try {
     if(isNaN(+id)) return res.status(400).json({ success: false, error: `The ID must be a valid number` });
     const carts = await cartsDao.getById(id);
+    if(!carts) return res.status(404).json({ success: false, error: `Cart ${id} not found` });
     res.status(200).json({ success: true, result: carts });
   } 
   catch(error) { next(error); }
@@ -35,14 +36,15 @@ const createCart = async (req, res, next) => {
     }
     await cartsDao.save({ products: productFound }); // Crea un carrito nuevo.
 
-    // ↓↓↓ Elimina el producto manteniendo solo su ID para regresarlo a su estado inicial cuando se estime conveniente.
-    for (let i = 0; i < id_prod.length; i++) await productsDao.save({ id: +id_prod[i] });
-    // ↑↑↑
-
+    for (let i = 0; i < id_prod.length; i++) {
+      let id = +id_prod[i];
+      await productsDao.save({ id });
+    }
     res.status(200).json({ success: true, result: "Cart created successfully" });
   }
   catch(error) { next(error); }
 };
+
 
 const addProductToCart = async (req, res, next) => {
   const { params: { id }, body: { id_prod } } = req;

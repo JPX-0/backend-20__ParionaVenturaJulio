@@ -71,4 +71,5 @@ module.exports = {
   createProduct,
   updateProductById,
   deleteProductById,
+  productsDao
 }

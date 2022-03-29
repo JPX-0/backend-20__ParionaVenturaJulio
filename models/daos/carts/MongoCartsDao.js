@@ -1,16 +1,15 @@
 const { Schema } = require('mongoose');
 const MongoContainer = require('../../containers/MongoContainer');
 
-const collection = 'carts';
-
 const cartsSchema = new Schema({
-  timestamp: { type: Date, min: Date.now() },
-  products: [{ type: Schema.Types.ObjectId, ref: 'products'}],
+  id: { type: Number, min: 0, required: true, unique: true },
+  timestamp: { type: String },
+  products: [{ type: Object }],
 });
 
 class MongoCartsDao extends MongoContainer {
   constructor() {
-    super(collection, cartsSchema);
+    super('carts', cartsSchema);
   }
 }
 
